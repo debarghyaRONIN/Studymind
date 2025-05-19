@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
+import QueryProvider from '@/components/query-provider';
 import Header from '@/components/layout/header';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
@@ -27,10 +28,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Header />
-          <main className="min-h-[calc(100vh-64px)]">
-            {children}
-          </main>
+          <QueryProvider>
+            <Header />
+            <main className="min-h-[calc(100vh-64px)]">
+              {children}
+            </main>
+          </QueryProvider>
           <Toaster />
           <SonnerToaster />
         </ThemeProvider>
