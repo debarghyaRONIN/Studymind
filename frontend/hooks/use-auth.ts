@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { authApi, UserCredentials, RegisterData } from '@/lib/api/auth';
+import { authApi, UserCredentials, RegisterData, AuthResponse } from '@/lib/api/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -12,7 +12,7 @@ export function useLogin() {
   
   return useMutation({
     mutationFn: (credentials: UserCredentials) => authApi.login(credentials),
-    onSuccess: (data) => {
+    onSuccess: (data: AuthResponse) => {
       // Store the token
       localStorage.setItem('token', data.token);
       
@@ -43,9 +43,18 @@ export function useRegister() {
   
   return useMutation({
     mutationFn: (data: RegisterData) => authApi.register(data),
-    onSuccess: (data) => {
-      // Cache the user data
-      queryClient.setQueryData(['profile'], data.user);
+    onSuccess: (data: AuthResponse) => {
+      // Store the token
+      localStorage.setItem('token', data.token);
+      
+      // Update the profile cache
+      queryClient.setQueryData(['profile'], {
+        _id: data._id,
+        name: data.name,
+        email: data.email
+      });
+      
+      // Redirect without showing toast
       router.push('/dashboard');
     },
     onError: (error: any) => {
@@ -62,6 +71,7 @@ export function useProfile() {
   return useQuery({
     queryKey: ['profile'],
     queryFn: authApi.getProfile,
+    retry: false
   });
 }
 
@@ -70,7 +80,7 @@ export function useLogout() {
   const queryClient = useQueryClient();
   
   return () => {
-    authApi.logout();
+    localStorage.removeItem('token');
     queryClient.clear();
     router.push('/login');
   };
